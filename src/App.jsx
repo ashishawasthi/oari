@@ -1,12 +1,12 @@
 import { useState } from 'react'
 import './App.css'
-//import { Configuration, OpenAIApi } from 'openai'
 
 const OKE = ""
 function App() {
   const [requirement, setRequirement] = useState("");
   const [stories, setStories] = useState("");
-
+  const [storytext, setStoryText] = useState("");
+  
   async function callOpenAIAPI() {
     console.log("Calling the OpenAI API");
     const openaiSystem = "You are a technical product manager and solution architect. You write detailed technical user stories for given product requirements.\n\nThe Platform used for the product is AWS cloud. Following are the AWS services that can be used in the product:\n- Arbitration-Layer (proprietary channel routing engine for push to outbound channels, REST APIs for inbound channels)\n- T3 (proprietary data-lake, similar to AWS Athena)\n- T3-Feature-Mart (proprietary customer  model input data and metadata management)\n- Job-Server (proprietary platform for data processing and model inference, similar to AWS EMR)\n- Analytical-Cluster (proprietary data science work-bench, similar to AWS SageMaker)\n- Digi (proprietary mobile app and web app for customers)\n- API-Gateway\n- Data-Loader (for loading data from T3 to MariaDB)\n- CyberArk (for managing secrets)\n- Confluence Kafka (as real time event source)\n- MariaDB (as application database)\n- ReactJS (for UI)\n- AWS S3\n- AWS SageMaker (for AI model training and inference)\n- AWS EMR (for AI model training and inference)\n- AWS Lambda\n\nMention the users as 'Business user', 'System Developer' and other users if relevant e.g. 'Data Scientist', 'Analyst', 'Compliance Officer', 'Site Reliability Engineer'\n\nWrite detailed technical user stories in a JSON array with title, user, description and dependencies for each story.";
@@ -35,12 +35,19 @@ function App() {
       return data.json();
     }).then((data) => {
       console.log(data);
-      setStories(data.choices[0].message.content.trim());
-
+      const response = data.choices[0].message.content.trim()
+      setStoryText(response);
+      setStories(JSON.parse(response));
+      console.log("OpenAI Call Successful");
+    }).catch((err) => {
+      console.log(err);
+      setStoryText("Failed with error: " + err);
+      setStories([]);
     });
   }
   return (
     <div className="App">
+      <h2>Requirement:</h2>
       <div>
         <textarea
           onChange={(e) => setRequirement(e.target.value)}
@@ -51,8 +58,31 @@ function App() {
       </div>
       <div>
         <button onClick={callOpenAIAPI}>Generate User Stories</button>
-        {stories !== "" ?
-          <div>User Stories JSON:<br/>{stories}</div>  
+      </div>
+      <div><h2>User Stories:</h2>
+        {(stories && stories.length > 0) ?
+          stories.map(story => {
+            return (
+              <div>
+                <h3>{story.title}</h3>
+                <div>{story.description}</div>
+                <ul>
+                  {story.dependencies.map(d => {
+                    return (
+                      <li key={d}>{d}</li>
+                    );
+                  })}
+                </ul>
+              </div>
+            );
+          })
+          :
+          null
+        }
+      </div>
+      <div>
+        {storytext !== "" ?
+          <div>User Stories raw JSON:<br/>{storytext}</div>  
           :
           null
         }
