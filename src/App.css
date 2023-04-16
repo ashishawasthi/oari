@@ -9,6 +9,11 @@
 }
 
 .notification {
+  color: navy;
+}
+
+
+.validation {
   color: crimson;
 }
 

@@ -11,20 +11,21 @@ const blockedTerms = ["Ashish","MyCompany"] // TODO change
 function App() {
   const [requirement, setRequirement] = useState(exampleReq1);
   const [stories, setStories] = useState("");
-  const [notofication, setNotofication] = useState("");
+  const [notification, setNotification] = useState("");
+  const [validation, setValidation] = useState("");
 
   
   async function generateStories() {
     if(!requirement || requirement.trim() === "" || requirement.length < 5) {
-      setNotofication("Please enter a requirement");
+      setValidation("Please enter a requirement");
       return;
     } else if(blockedTerms.some(blocked => requirement.includes(blocked))) {
-      setNotofication("Please don't use terms that reveal identity, e.g. " + blockedTerms.join(", "));
+      setValidation("Please don't use terms that reveal identity, e.g. " + blockedTerms.join(", "));
       return;
     } else if(OKE === "") {
-      setNotofication("OpenAI token is missing. Please contact the application administrator.")
+      setValidation("OpenAI token is missing. Please contact the application administrator.")
     } else {
-      setNotofication("");
+      setValidation("");
     }
     const newRequirement = "Business Requirements:\n" + requirement;
     // check if new requirement is in local storage
@@ -32,6 +33,7 @@ function App() {
     if(cachedStories) {
       console.log("Using cached stories");
       setStories(JSON.parse(cachedStories));
+      setNotification("Using cached user stories");
       return;
     } else {
       const APIBody = {
@@ -66,16 +68,15 @@ function App() {
         localStorage.setItem(newRequirement, response);
       }).catch((err) => {
         console.log(err);
-        setNotofication("Failed with error: " + err);
+        setValidation("Failed with error: " + err);
         setStories([]);
       });
     }
   }
   return (
     <div className="App">
-      <div className="notification">
-        {notofication !== "" ? <div >{notofication}</div>:null}
-      </div>
+      <div className="notification">{notification !== "" ? <div >{notification}</div>:null}</div>
+      <div className="validation">{validation !== "" ? <div >{validation}</div>:null}</div>
       <div>
         <h4>Requirement:</h4>
         <textarea
